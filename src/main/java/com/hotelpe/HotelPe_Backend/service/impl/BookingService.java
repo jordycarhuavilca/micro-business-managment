@@ -1,6 +1,9 @@
 package com.hotelpe.HotelPe_Backend.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.hotelpe.HotelPe_Backend.config.SqsMessageProducer;
 import com.hotelpe.HotelPe_Backend.dto.BookingDTO;
+import com.hotelpe.HotelPe_Backend.dto.CardPaymentDTO;
 import com.hotelpe.HotelPe_Backend.dto.Response;
 import com.hotelpe.HotelPe_Backend.entity.Booking;
 import com.hotelpe.HotelPe_Backend.entity.Room;
@@ -12,12 +15,20 @@ import com.hotelpe.HotelPe_Backend.repo.UserRepository;
 import com.hotelpe.HotelPe_Backend.service.interfac.IBookingService;
 import com.hotelpe.HotelPe_Backend.service.interfac.IRoomService;
 import com.hotelpe.HotelPe_Backend.utils.Utils;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @Service
 public class BookingService implements IBookingService {
 
@@ -29,47 +40,47 @@ public class BookingService implements IBookingService {
     private RoomRepository roomRepository;
     @Autowired
     private UserRepository userRepository;
-
+    @Autowired
+    private SqsMessageProducer publisher;
+    @Value("${spring.cloud.aws.sqs.endpoint.booking}")
+    private String bookingQueueName;
 
     @Override
-    public Response saveBooking(int roomId, int userId, Booking bookingRequest) {
-
+    public Response booking(CardPaymentDTO cardPaymentDTO) throws JsonProcessingException {
+        log.info("booking.init " + cardPaymentDTO.toString());
         Response response = new Response();
+        BookingDTO reservation = cardPaymentDTO.getAdditionalInfo().getItem();
+        LocalDate checkInDate = LocalDate.parse(reservation.getCheckInDate());
+        LocalDate checkOutDate = LocalDate.parse(reservation.getCheckInDate());
 
-        try {
-            if (bookingRequest.getCheckOutDate().isBefore(bookingRequest.getCheckInDate())) {
-                throw new IllegalArgumentException("Check in date must come after check out date");
-            }
-            Room room = roomRepository.findById((long) roomId).orElseThrow(() -> new OurException("Room Not Found"));
-            User user = userRepository.findById((long) userId).orElseThrow(() -> new OurException("User Not Found"));
-
-            List<Booking> existingBookings = room.getBookings();
-
-            if (!roomIsAvailable(bookingRequest, existingBookings)) {
-                throw new OurException("Room not Available for selected date range");
-            }
-
-            bookingRequest.setRoom(room);
-            bookingRequest.setUser(user);
-            String bookingConfirmationCode = Utils.generateRandomConfirmationCode(10);
-            bookingRequest.setBookingConfirmationCode(bookingConfirmationCode);
-            bookingRepository.save(bookingRequest);
-            response.setStatusCode(200);
-            response.setMessage("successful");
-            response.setBookingConfirmationCode(bookingConfirmationCode);
-
-        } catch (OurException e) {
-            response.setStatusCode(404);
-            response.setMessage(e.getMessage());
-
-        } catch (Exception e) {
-            response.setStatusCode(500);
-            response.setMessage("Error Saving a booking: " + e.getMessage());
-
+        if (checkOutDate.isBefore(checkInDate)) {
+            throw new IllegalArgumentException("Check in date must come after check out date");
         }
+        Room room = roomRepository.findById((long) reservation.getRoom().getId()).orElseThrow(() -> new OurException("Room Not Found"));
+        User user = userRepository.findById((long) reservation.getUser().getId()).orElseThrow(() -> new OurException("User Not Found"));
+
+        List<Booking> existingBookings = room.getBookings();
+        Booking booking = Utils.mapBookingDTOEntityToBooking(reservation);
+
+        if (!roomIsAvailable(booking, existingBookings)) {
+            throw new OurException("Room not Available for selected date range");
+        }
+
+        booking.setRoom(room);
+        booking.setUser(user);
+        String bookingConfirmationCode = Utils.generateRandomConfirmationCode(10);
+        booking.setBookingConfirmationCode(bookingConfirmationCode);
+
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("Content-Type","application/json");
+        log.info("booking.sent.bookingQueueName " + booking.toString());
+        publisher.send(booking,bookingQueueName,headers);
+
+        response.setStatusCode(200);
+        response.setMessage("successful");
+
         return response;
     }
-
 
     @Override
     public Response findBookingByConfirmationCode(String confirmationCode) {

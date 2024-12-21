@@ -1,16 +1,19 @@
 package com.hotelpe.HotelPe_Backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.io.Serializable;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class BookingDTO {
+public class BookingDTO implements Serializable {
     private int id;
-    private LocalDate checkInDate;
-    private LocalDate checkOutDate;
+    @JsonFormat(pattern = "yyyy-mm-dd")
+    private String checkInDate;
+    @JsonFormat(pattern = "yyyy-mm-dd")
+    private String checkOutDate;
     private int numOfAdults;
     private int numOfChildren;
     private int totalNumOfGuest;

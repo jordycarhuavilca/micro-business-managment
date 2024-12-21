@@ -8,6 +8,7 @@ import com.hotelpe.HotelPe_Backend.entity.Room;
 import com.hotelpe.HotelPe_Backend.entity.User;
 
 import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -76,8 +77,8 @@ public class Utils {
         BookingDTO bookingDTO = new BookingDTO();
         // Map simple fields
         bookingDTO.setId(booking.getId());
-        bookingDTO.setCheckInDate(booking.getCheckInDate());
-        bookingDTO.setCheckOutDate(booking.getCheckOutDate());
+        bookingDTO.setCheckInDate(booking.getCheckInDate().toString());
+        bookingDTO.setCheckOutDate(booking.getCheckOutDate().toString());
         bookingDTO.setNumOfAdults(booking.getNumOfAdults());
         bookingDTO.setNumOfChildren(booking.getNumOfChildren());
         bookingDTO.setTotalNumOfGuest(booking.getTotalNumOfGuest());
@@ -99,14 +100,48 @@ public class Utils {
         }
         return roomDTO;
     }
+    public static Booking mapBookingDTOEntityToBooking(BookingDTO bookingDTO){
+        Booking booking = new Booking();
+        // Map simple fields
+        booking.setId(bookingDTO.getId());
+        booking.setCheckInDate(LocalDate.parse(bookingDTO.getCheckInDate()));
+        booking.setCheckOutDate(LocalDate.parse(bookingDTO.getCheckOutDate()));
+        booking.setNumOfAdults(bookingDTO.getNumOfAdults());
+        booking.setNumOfChildren(bookingDTO.getNumOfChildren());
+        booking.setTotalNumOfGuest(bookingDTO.getTotalNumOfGuest());
+        booking.setBookingConfirmationCode(bookingDTO.getBookingConfirmationCode());
 
+        if (bookingDTO.getUser() != null) {
+            User user = new User();
+            UserDTO userDTO = bookingDTO.getUser();
+            user.setId(userDTO.getId());
+            user.setPhoneNumber(userDTO.getPhoneNumber());
+            user.setEmail(userDTO.getEmail());
+            user.setPassword(userDTO.getPassword());
+            user.setRole(userDTO.getRole());
+            user.setName(userDTO.getName());
+
+            booking.setUser(user);
+        }
+        if (bookingDTO.getRoom() != null) {
+            Room room = new Room();
+
+            room.setId(bookingDTO.getRoom().getId());
+            room.setRoomType(bookingDTO.getRoom().getRoomType());
+            room.setRoomPrice(bookingDTO.getRoom().getRoomPrice());
+            room.setRoomPhotoUrl(bookingDTO.getRoom().getRoomPhotoUrl());
+            room.setRoomDescription(bookingDTO.getRoom().getRoomDescription());
+            booking.setRoom(room);
+        }
+        return booking;
+    }
     public static BookingDTO mapBookingEntityToBookingDTOPlusBookedRooms(Booking booking, boolean mapUser) {
 
         BookingDTO bookingDTO = new BookingDTO();
         // Map simple fields
         bookingDTO.setId(booking.getId());
-        bookingDTO.setCheckInDate(booking.getCheckInDate());
-        bookingDTO.setCheckOutDate(booking.getCheckOutDate());
+        bookingDTO.setCheckInDate(booking.getCheckInDate().toString());
+        bookingDTO.setCheckOutDate(booking.getCheckOutDate().toString());
         bookingDTO.setNumOfAdults(booking.getNumOfAdults());
         bookingDTO.setNumOfChildren(booking.getNumOfChildren());
         bookingDTO.setTotalNumOfGuest(booking.getTotalNumOfGuest());

@@ -12,6 +12,7 @@ import com.hotelpe.HotelPe_Backend.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,11 +34,14 @@ public class UserService implements IUserService {
     private JWTUtils jwtUtils;
     @Autowired
     private AuthenticationManager authenticationManager;
+
     @Autowired
     AutenticacionClient autenticacionClient;
+
     @Autowired
     private SqsMessageProducer producer;
-
+    @Value("${spring.cloud.aws.sqs.endpoint.booking}")
+    private String bookingQueueName;
     @Override
     public Response register(UserDTO user) {
         Response response = new Response();
@@ -49,7 +53,7 @@ public class UserService implements IUserService {
             Map<String, Object> headers = new HashMap<>();
             //headers.put("Message-Type", MessageType.ORDER.name());
             headers.put("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-            producer.send(user,headers);
+            producer.send(user,bookingQueueName, headers);
             //ResponseEntity<RegisterResponseDto> responseEntity = autenticacionClient.register(user);
             log.info("register.sentMessage");
             /*if (responseEntity.getStatusCode().is2xxSuccessful()){
@@ -57,7 +61,7 @@ public class UserService implements IUserService {
                 response.setStatusCode(registerResponseDto.getStatusCode());
                 return response;
             }*/
-            response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
+            response.setStatusCode(HttpStatus.SC_OK);
             return response;
         } catch (OurException e) {
             response.setStatusCode(HttpStatus.SC_BAD_REQUEST);

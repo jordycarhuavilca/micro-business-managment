@@ -25,10 +25,12 @@ public class AuthController {
         Response response = userService.register(user);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
     @PostMapping("/verifyRegistration")
     public Response verifyRegistration(@RequestBody VerifyRegistrationDto verifyRegistrationDto) {
         return this.userService.verifyRegistration(verifyRegistrationDto);
     }
+
     @PostMapping("/login")
     public ResponseEntity<Response> login(@RequestBody LoginRequest loginRequest) {
         Response response = userService.login(loginRequest);

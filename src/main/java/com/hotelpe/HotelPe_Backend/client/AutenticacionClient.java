@@ -2,8 +2,10 @@ package com.hotelpe.HotelPe_Backend.client;
 
 import com.hotelpe.HotelPe_Backend.config.FeignClientConfig;
 import com.hotelpe.HotelPe_Backend.dto.*;
+import feign.Headers;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -16,4 +18,7 @@ public interface AutenticacionClient {
     ResponseEntity<VerifyRegistrationResponseDto> verifyRegistration(@RequestBody VerifyRegistrationDto verifyRegistrationDto);
     @PostMapping("/login")
     ResponseEntity<VerifyRegistrationResponseDto> login(@RequestBody LoginRequest loginRequest);
+    @GetMapping("/publicKey")
+    @Headers("Content-Type: application/json")
+    ResponseEntity<GetPublicKeyDto> getPublicKey();
 }

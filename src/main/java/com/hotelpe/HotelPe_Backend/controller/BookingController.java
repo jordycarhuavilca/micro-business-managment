@@ -1,7 +1,8 @@
 package com.hotelpe.HotelPe_Backend.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.hotelpe.HotelPe_Backend.dto.CardPaymentDTO;
 import com.hotelpe.HotelPe_Backend.dto.Response;
-import com.hotelpe.HotelPe_Backend.entity.Booking;
 import com.hotelpe.HotelPe_Backend.service.interfac.IBookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,16 +15,16 @@ public class BookingController {
     @Autowired
     private IBookingService bookingService;
 
-    @PostMapping("/book-room/{roomId}/{userId}")
+    @PostMapping("/booking")
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('USER')")
-    public ResponseEntity<Response> saveBookings(@PathVariable int roomId,
-                                                 @PathVariable int userId,
-                                                 @RequestBody Booking bookingRequest) {
+    public ResponseEntity<Response> saveBookings(@RequestBody CardPaymentDTO reservation) {
+        try {
+            Response response = bookingService.booking(reservation);
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.status(500).body(null);
 
-
-        Response response = bookingService.saveBooking(roomId, userId, bookingRequest);
-        return ResponseEntity.status(response.getStatusCode()).body(response);
-
+        }
     }
 
     @GetMapping("/all")

@@ -1,5 +1,7 @@
 package com.hotelpe.HotelPe_Backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
@@ -17,6 +19,7 @@ public class UserDTO implements Serializable {
     private String password;
     private String phoneNumber;
     private String role;
+    @JsonIgnore
     private List<BookingDTO> bookings = new ArrayList<>();
 
 }

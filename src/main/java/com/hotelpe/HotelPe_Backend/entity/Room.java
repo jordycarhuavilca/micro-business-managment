@@ -1,10 +1,10 @@
 package com.hotelpe.HotelPe_Backend.entity;
-
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+
+
 @Data
 @Entity
 @Table(name = "rooms")
