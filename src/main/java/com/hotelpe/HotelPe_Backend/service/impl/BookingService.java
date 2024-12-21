@@ -4,11 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hotelpe.HotelPe_Backend.config.SqsMessageProducer;
 import com.hotelpe.HotelPe_Backend.dto.BookingDTO;
 import com.hotelpe.HotelPe_Backend.dto.CardPaymentDTO;
+import com.hotelpe.HotelPe_Backend.dto.PaymentResponseDTO;
 import com.hotelpe.HotelPe_Backend.dto.Response;
 import com.hotelpe.HotelPe_Backend.entity.Booking;
 import com.hotelpe.HotelPe_Backend.entity.Room;
 import com.hotelpe.HotelPe_Backend.entity.User;
+import com.hotelpe.HotelPe_Backend.enumFiles.PaymentSatus;
 import com.hotelpe.HotelPe_Backend.exception.OurException;
+import com.hotelpe.HotelPe_Backend.interfaces.ICardPayment;
 import com.hotelpe.HotelPe_Backend.repo.BookingRepository;
 import com.hotelpe.HotelPe_Backend.repo.RoomRepository;
 import com.hotelpe.HotelPe_Backend.repo.UserRepository;
@@ -16,11 +19,10 @@ import com.hotelpe.HotelPe_Backend.service.interfac.IBookingService;
 import com.hotelpe.HotelPe_Backend.service.interfac.IRoomService;
 import com.hotelpe.HotelPe_Backend.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -44,6 +46,8 @@ public class BookingService implements IBookingService {
     private SqsMessageProducer publisher;
     @Value("${spring.cloud.aws.sqs.endpoint.booking}")
     private String bookingQueueName;
+    @Autowired
+    ICardPayment iCardPayment;
 
     @Override
     public Response booking(CardPaymentDTO cardPaymentDTO) throws JsonProcessingException {
@@ -70,6 +74,16 @@ public class BookingService implements IBookingService {
         booking.setUser(user);
         String bookingConfirmationCode = Utils.generateRandomConfirmationCode(10);
         booking.setBookingConfirmationCode(bookingConfirmationCode);
+        PaymentResponseDTO paymentRes = iCardPayment.processPayment(cardPaymentDTO);
+        log.info("booking.processPayment.sent " + paymentRes.toString());
+        boolean isPaymentAccepted = PaymentSatus.APPROVED.toString().equals(paymentRes.getStatus());
+        log.info("booking.processPayment.isAccepted " + isPaymentAccepted);
+
+        if(!isPaymentAccepted){
+            response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+            response.setMessage(HttpStatus.NOT_ACCEPTABLE.getReasonPhrase());
+            return response;
+        }
 
         Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type","application/json");
