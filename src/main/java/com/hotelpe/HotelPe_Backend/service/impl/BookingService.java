@@ -20,6 +20,7 @@ import com.hotelpe.HotelPe_Backend.service.interfac.IRoomService;
 import com.hotelpe.HotelPe_Backend.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -36,17 +37,24 @@ public class BookingService implements IBookingService {
 
     @Autowired
     private BookingRepository bookingRepository;
+
     @Autowired
     private IRoomService roomService;
+
     @Autowired
     private RoomRepository roomRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private SqsMessageProducer publisher;
+
     @Value("${spring.cloud.aws.sqs.endpoint.booking}")
     private String bookingQueueName;
+
     @Autowired
+    @Qualifier("cardPaymentService")
     ICardPayment iCardPayment;
 
     @Override

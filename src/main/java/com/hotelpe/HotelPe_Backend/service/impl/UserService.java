@@ -40,8 +40,8 @@ public class UserService implements IUserService {
 
     @Autowired
     private SqsMessageProducer producer;
-    @Value("${spring.cloud.aws.sqs.endpoint.booking}")
-    private String bookingQueueName;
+    @Value("${spring.cloud.aws.sqs.endpoint.register}")
+    private String registerQueueName;
     @Override
     public Response register(UserDTO user) {
         Response response = new Response();
@@ -53,7 +53,7 @@ public class UserService implements IUserService {
             Map<String, Object> headers = new HashMap<>();
             //headers.put("Message-Type", MessageType.ORDER.name());
             headers.put("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-            producer.send(user,bookingQueueName, headers);
+            producer.send(user,registerQueueName, headers);
             //ResponseEntity<RegisterResponseDto> responseEntity = autenticacionClient.register(user);
             log.info("register.sentMessage");
             /*if (responseEntity.getStatusCode().is2xxSuccessful()){

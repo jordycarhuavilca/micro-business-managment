@@ -1,7 +1,5 @@
 package com.hotelpe.HotelPe_Backend.service.impl;
-import com.hotelpe.HotelPe_Backend.config.SqsMessageProducer;
 import com.hotelpe.HotelPe_Backend.dto.CardPaymentDTO;
-import com.hotelpe.HotelPe_Backend.enumFiles.PaymentSatus;
 import com.hotelpe.HotelPe_Backend.exception.MercadoPagoException;
 import com.hotelpe.HotelPe_Backend.interfaces.ICardPayment;
 import com.mercadopago.MercadoPagoConfig;
@@ -14,7 +12,6 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import com.hotelpe.HotelPe_Backend.dto.PaymentResponseDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

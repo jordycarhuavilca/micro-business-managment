@@ -37,4 +37,11 @@ public class Advisor extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler({IllegalArgumentException.class, OurException.class, Exception.class })
+    public ResponseEntity<Object> handleExceptdion(OurException exception) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error_message", exception.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 }
